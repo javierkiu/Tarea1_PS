@@ -1,8 +1,56 @@
 #include <stdio.h>
 #include "utils.h"
+#include <time.h>
+#include <string.h>
 
-int main()
-{
+
+// Función para obtener la fecha actual en el formato YYYY/MM/DD
+void obtenerFechaActual(char *fecha) {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    sprintf(fecha, "%d/%02d/%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+}
+
+// Función para verificar usuario y clave en el archivo "usuarios.txt"
+int verificarCredenciales(const char *usuario, const char *clave) {
+    FILE *file = fopen("usuarios.txt", "r");
+    if (!file) {
+        perror("Error al abrir el archivo de usuarios");
+        return -1;
+    }
+    
+    char linea[100], usuarioArchivo[50], claveArchivo[50];
+    int autenticado = 0;
+    
+    while (fgets(linea, sizeof(linea), file)) {
+        sscanf(linea, "%[^:]:%s", usuarioArchivo, claveArchivo);
+        if (strcmp(usuario, usuarioArchivo) == 0 && strcmp(clave, claveArchivo) == 0) {
+            autenticado = 1;
+            break;
+        }
+    }
+    
+    fclose(file);
+    return autenticado;
+}
+
+
+// Función para registrar en la bitácora
+void registrarBitacora(const char *usuario, const char *accion) {
+    FILE *file = fopen("bitacora.txt", "a");
+    if (!file) {
+        perror("Error al abrir el archivo de bitácora");
+        return;
+    }
+    
+    char fecha[20];
+    obtenerFechaActual(fecha);
+    
+    fprintf(file, "%s: %s – %s\n", fecha, usuario, accion);
+    fclose(file);
+}
+
+void programaPrincipal(const char *usuario){
     int opcion;
     int continuar;
     do
@@ -20,6 +68,7 @@ int main()
             printf("Ingresa la altura:\n");
             scanf("%lf", &altura_triangulo);
             calcularTriangulo(base_triangulo, altura_triangulo);
+            registrarBitacora(usuario,"Triángulo");
             break;
 
         case 2:
@@ -34,6 +83,7 @@ int main()
             printf("Ingresa la altura:\n");
             scanf("%lf", &altura_paralelogramo);
             calcularParalelogramo(lado1_paralelogramo, lado2_paralelogramo, altura_paralelogramo);
+            registrarBitacora(usuario,"Paralelogramo");
             break;
 
         case 3:
@@ -42,6 +92,7 @@ int main()
             printf("Ingresa el lado:\n");
             scanf("%lf", &lado_cuadrado);
             calcularCuadrado(lado_cuadrado);
+            registrarBitacora(usuario,"Cuadrado");
             break;
 
         case 4:
@@ -53,6 +104,7 @@ int main()
             printf("Ingresa el ancho:\n");
             scanf("%lf", &ancho);
             calcularRectangulo(largo, ancho);
+            registrarBitacora(usuario,"Rectángulo");
             break;
 
         case 5:
@@ -64,6 +116,7 @@ int main()
             printf("Ingresa la diagonal menor:\n");
             scanf("%lf", &diagonal_menor);
             calcularRombo(diagonal_mayor, diagonal_menor);
+            registrarBitacora(usuario,"Rombo");
             break;
 
         case 6:
@@ -78,6 +131,7 @@ int main()
             printf("Ingresa la altura:\n");
             scanf("%lf", &altura_trapecio);
             calcularTrapecio(base_mayor, base_menor, altura_trapecio);
+            registrarBitacora(usuario,"Trapecio");
             break;
 
         case 7:
@@ -86,6 +140,7 @@ int main()
             printf("Ingresa el radio:\n");
             scanf("%lf", &radio);
             calcularCirculo(radio);
+            registrarBitacora(usuario,"Círculo");
             break;
 
         case 8:
@@ -100,6 +155,7 @@ int main()
             printf("Ingresa el apotema:\n");
             scanf("%lf", &apotema);
             calcularPoligonoRegular(numero_lados, lado_poligono, apotema);
+            registrarBitacora(usuario,"Polígono regular");
             break;
 
         case 9:
@@ -108,6 +164,7 @@ int main()
             printf("Ingresa el lado del cubo:\n");
             scanf("%lf", &lado_cubo);
             calcularCubo(lado_cubo);
+            registrarBitacora(usuario,"Cubo");
             break;
 
         case 10:
@@ -122,6 +179,7 @@ int main()
             printf("Ingresa el alto:\n");
             scanf("%lf", &alto_cuboide);
             calcularCuboide(largo_cuboide, ancho_cuboide, alto_cuboide);
+            registrarBitacora(usuario,"Cuboide");
             break;
 
         case 11:
@@ -133,6 +191,7 @@ int main()
             printf("Ingresa la altura:\n");
             scanf("%lf", &altura_cilindro);
             calcularCilindro(radio_cilindro, altura_cilindro);
+            registrarBitacora(usuario,"Cilindro");
             break;
 
         case 12:
@@ -144,6 +203,7 @@ int main()
             printf("Ingresa la altura:\n");
             scanf("%lf", &altura_cilindro_recto);
             calcularCilindroRecto(radio_cilindro_recto, altura_cilindro_recto);
+            registrarBitacora(usuario,"Cilindro Recto");
             break;
 
         case 13:
@@ -152,6 +212,7 @@ int main()
             printf("Ingresa el radio de la esfera:\n");
             scanf("%lf", &radio_esfera);
             calcularEsfera(radio_esfera);
+            registrarBitacora(usuario,"Esfera");
             break;
 
         case 14:
@@ -163,16 +224,47 @@ int main()
             printf("Ingresa la altura del cono:\n");
             scanf("%lf", &altura_cono);
             calcularConoCircularRecto(radio_cono, altura_cono);
+            registrarBitacora(usuario,"Cono Círcular Recto");
             break;
 
         default:
             printf("No elegiste una opción válida :(\n");
             break;
-        }
+        };
 
         continuar = preguntarContinuar();
+        if(continuar == 0){
+            registrarBitacora(usuario,"Salida del sistema");
+        };
 
-    } while (continuar == 1);
+    } while (continuar == 1);    
+}
+
+int main()
+{
+    char usuario[50], clave[50];
+    
+    // Solicitar datos de ingreso al usuario
+    printf("Ingrese su usuario: ");
+    scanf("%s", usuario);
+    printf("Ingrese su clave: ");
+    scanf("%s", clave);
+    
+    // Verificar credenciales
+    int resultado = verificarCredenciales(usuario, clave);
+    
+    if (resultado == 1) {
+        printf("Ingreso exitoso al sistema.\n");
+        registrarBitacora(usuario, "Ingreso exitoso al sistema");
+        programaPrincipal(usuario);
+    } else if (resultado == 0) {
+        printf("Ingreso fallido: usuario/clave erróneo.\n");
+        registrarBitacora(usuario, "Ingreso fallido usuario/clave erróneo");
+    } else {
+        printf("Error al verificar las credenciales.\n");
+    }
+
+    
 
     return 0;
 }

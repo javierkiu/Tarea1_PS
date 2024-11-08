@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <math.h>
 #include "utils.h"
+#include <stdlib.h>
+#include <string.h>
+ 
 
 /**
  * Calcula el área de un triángulo.
